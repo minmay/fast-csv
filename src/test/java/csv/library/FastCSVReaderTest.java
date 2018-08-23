@@ -28,12 +28,8 @@ package csv.library;
 
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -110,34 +106,19 @@ public class FastCSVReaderTest {
     public void testValueParsing() {
 
         final Object[] expected = {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
-        final Class[] types = {boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class};
         final String line = FastCSVWriter.delimit(',', expected);
-        final TypeParser parser = new TypeParser();
 
-        Optional<Object[]> actual = FastCSVReader.newBuilder().setText(line).build().stream().findFirst().map(CSVLine::getCsvs).map(csv -> {
-
-            Object[] values = null;
-
-            values = new Object[csv.length];
-            for (int i = 0; i < csv.length; i++) {
-                String s = csv[i];
-                Class type = i < types.length ? types[i] : null;
-                Object v = null;
-                try {
-                    v = type != null ? parser.parse(type, s) : s;
-                    values[i] = v;
-                } catch (RuntimeException e) {
-                    System.err.println("Error parsing type = " + type + " csv[" + i + "] = " + csv[i]);
-                    throw e;
-                }
-            }
-
-            return values;
-        });
+        Object[] actual = FastCSVReader
+                .newBuilder()
+                .setText(line)
+                .build()
+                .stream()
+                .map(TypeParser.newInstance().add(boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class))
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(actual);
-        assertTrue(actual.isPresent());
-        assertArrayEquals(expected, actual.get());
+        assertArrayEquals(expected, actual);
     }
 
     @Test
@@ -186,6 +167,22 @@ public class FastCSVReaderTest {
         assertArrayEquals(new String[]{""}, actual.get(1));
         assertArrayEquals(new String[]{"1", "2\n", "3", "4"}, actual.get(2));
         assertArrayEquals(new String[]{"1", "2", "4", "5", "6"}, actual.get(3));
+    }
+
+    @Test
+    public void testParseIntoArray() throws IOException {
+        String[][] actual = FastCSVReader.newBuilder()
+                .setResource(FastCSVReaderTest.class, "/good.csv")
+                .build()
+                .stream()
+                .map(CSVLine::getCsvs)
+                .collect(Collectors.toList()).toArray(new String[][]{});
+
+
+        assertArrayEquals(new String[]{"1", "2", "3", "4", "5"}, actual[0]);
+        assertArrayEquals(new String[]{""}, actual[1]);
+        assertArrayEquals(new String[]{"1", "2\n", "3", "4"}, actual[2]);
+        assertArrayEquals(new String[]{"1", "2", "4", "5", "6"}, actual[3]);
     }
 
     @Test

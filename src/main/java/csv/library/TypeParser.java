@@ -25,21 +25,23 @@
 
 package csv.library;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * A data-structure that contains parsers for a variety of types.
  */
-public class TypeParser {
+public class TypeParser implements Function<CSVLine, Object[]> {
 
 	/**
 	 * A map of types and parsers.
 	 * The key is the class that the parser will valueOf.
 	 * The value is the actual parser for given type.
 	 */
-	private Map<String, FieldParser> typeParserMap = new HashMap<String, FieldParser>();
+	private final Map<String, FieldParser> typeParserMap = new HashMap<>();
 
+	/** The list of types in parse order. */
+	private final List<String> types = new ArrayList<>();
 
 	/**
 	 * Creates an instance of the type parser, and initializes
@@ -93,25 +95,90 @@ public class TypeParser {
 	}
 
 	/**
-	 * Adds a parser for the given type.
+	 * Adds a value parser by id in order to this type parser.
 	 *
-	 * @param type The type of class that this parser supports.
-	 * @param p the parser implementation.
+	 * @param parserId The id of parser to use.
+	 * @return this TypeParser.
 	 */
-	public TypeParser add(Class type, FieldParser p) {
-		add(type.getName(), p);
+	public TypeParser add(String parserId) {
+		types.add(parserId);
 		return this;
 	}
 
 	/**
-	 * Adds a parser for the given type.
+	 * Adds a value parser by type name in order to this type parser.
 	 *
-	 * @param parserId The type of class that this parser supports.
-	 * @param p the parser implementation.
+	 * @param type The type, which name is associated with a parser.
+	 * @return this TypeParser.
 	 */
-	public TypeParser add(String parserId, FieldParser p) {
+	public TypeParser add(Class type) {
+		return add(type.getName());
+	}
+
+	/**
+	 * Adds many value parsers by type name in order to this type parser.
+	 *
+	 * @param types The types, in which each name is associated with a parser.
+	 * @return this TypeParser.
+	 */
+	public TypeParser add(Class ... types) {
+		if (types != null) {
+			for (Class type : types) {
+				add(type);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * Adds a field parser for the given type.
+	 *
+	 * @param type The type of class that this value parser supports.
+	 * @param p the value parser implementation.
+	 */
+	public TypeParser addFieldParser(Class type, FieldParser p) {
+		addFieldParser(type.getName(), p);
+		return this;
+	}
+
+	/**
+	 * Adds a field parser for the given type.
+	 *
+	 * @param parserId The type of class that this field parser supports.
+	 * @param p the field parser implementation.
+	 */
+	public TypeParser addFieldParser(String parserId, FieldParser p) {
 		typeParserMap.put(parserId, p);
 		return this;
+	}
+
+	/**
+	 * Creates a new instance of a TypeParser.
+	 *
+	 * @return a new instance.
+	 */
+	public static TypeParser newInstance() {
+		return new TypeParser();
+	}
+
+	@Override
+	public Object[] apply(CSVLine line) {
+		final String[] csv = line.getCsvs();
+		final Object[] values = new Object[csv.length];
+
+		for (int i = 0; i < csv.length; i++) {
+			final String s = csv[i];
+			final String type = i < types.size() ? types.get(i) : null;
+			try {
+				final Object v = type != null ? parse(type, s) : s;
+				values[i] = v;
+			} catch (RuntimeException e) {
+				System.err.println("Error parsing type = " + type + " csv[" + i + "] = " + csv[i]);
+				throw e;
+			}
+		}
+
+		return values;
 	}
 
 	private class BooleanParser extends LangFieldParser<Boolean> {

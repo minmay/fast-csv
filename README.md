@@ -46,15 +46,58 @@ setDelimiter(char)
 setQuotedLengthLimit(int) // if there is an error closing a quote, this will prevent the parser from reading to the end of file.
 ```
 ## Examples
-### Collect into Array
+### Iterate over each element
 This example parses a file, puts all of the contents in memory within an array of CSV lines. 
 ```java
-CSVLine[] lines = FastCSVReader().newBuilder()
+FastCSVReader.newBuilder()
+    .setFile("data.csv")
+    .build()
+    .stream()
+    .map(CSVLine::getCsvs)
+    .forEach(line -> {
+        System.out.println(line[0]);
+    });
+```
+### Collect into CSVLine Array 
+```java
+CSVLine[] lines = FastCSVReader.newBuilder()
     .setFile("data.csv")
     .build()
     .stream()
     .collect(Collectors.toList())
     .toArray(new CSVLine[]{});
+```
+### Collect into multi-dimensional String array. 
+```java
+String[][] lines = FastCSVReader.newBuilder()
+    .setFile("data.csv")
+    .build()
+    .stream()
+    .map(CSVLine::getCsvs)
+    .collect(Collectors.toList())
+    .toArray(new String[][]{});
+```
+### Collect into multi-dimensional Object array.
+```java
+Object[][] lines = FastCSVReader.newBuilder()
+    .setFile("data.csv")
+    .build()
+    .stream()
+    .map(TypeParser.newInstance().add(boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class))
+    .collect(Collectors.toList())
+    .toArray(new Object[][]{});
+```
+### First as an object array.
+```java 
+Object[] parsed = FastCSVReader
+    .newBuilder()
+    .setText("true,1,123,123.456,123.456,123,a,Hey man!!!")
+    .build()
+    .stream()
+    .map(TypeParser.newInstance().add(boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class))
+    .findFirst()
+    .orElse(null); //returns new Object[] {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
+       
 ```
 
 The FAST CSV library uses the builder design pattern to configure what and how you want to parse.
