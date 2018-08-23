@@ -18,12 +18,10 @@ This CSV parser has the following features.
 ## Features
 1. Takes care of all of the unique aspects of CSV listed above.
 2. Highly configurable with many different input sources.
-3. Provides three types of parsing:
-4. all in memory.
-5. streaming (non-blocking).
-6. event based callback.
-7. The delimiter is configurable.
-8. Configurable quoted value length to prevent the parser from reading to the End Of File when a quote is not closed.
+3. Uses the java.util.stream API.
+4. Implemented with NIO.
+5. The delimiter is configurable.
+6. Configurable quoted value length to prevent the parser from reading to the End Of File when a quote is not closed.
 
 ## Usage
 First assign an input source of CSV lines to parse.
@@ -36,11 +34,8 @@ setChannel(ReadableByteChannel)
 setResource(Class,String)
 ```
 
-Then, parse the input into a data-structure or event callback.
+```build()``` then, ```stream()```.
 
-CSVLine[] parseToArray()
-BlockingQueue``<CSVLine> parseToQueue() - note that this will use a thread to populate the queue. Hence, this is a non-blocking call.
-parseToCallback()
 All parsing implementations allow you to configure the buffer size, delimiter, and the quoted value length limit. This is done with the following methods.
 ```
 setBufferSize(int)
