@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -38,7 +39,7 @@ import static org.junit.Assert.fail;
 
 public class LineEndTest {
 
-	private final String resources = "target/test-classes";
+	private final String resources = "build/resources/test";
 
 	@Test
 	public void testCRLineEnd() {
@@ -63,7 +64,7 @@ public class LineEndTest {
 
 	private void executeTest(String filename) {
 		try {
-			CSVLine[] csv = CSV.newBuilder().setResource(LineEndTest.class, filename).build().parseToArray();
+			CSVLine[] csv = FastCSVReader.newBuilder().setResource(LineEndTest.class, filename).build().stream().collect(Collectors.toList()).toArray(new CSVLine[] {});
 			assertEquals(csv.length, 4);
 			for (CSVLine c : csv) {
 				assertEquals(c.getCsvs().length, 4);
@@ -85,7 +86,7 @@ public class LineEndTest {
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (RuntimeException e) {
 			fail("Unexpected exception.");
 		}
 	}
@@ -96,7 +97,7 @@ public class LineEndTest {
 		try {
 			if (!file.exists()) {
 				fileWriter = new FileWriter(file);
-				String csvs = CSV.delimit(',', "one", "two", "three", "four");
+				String csvs = FastCSVWriter.delimit(',', "one", "two", "three", "four");
 
 				for (int i = 0; i < 3; i++) {
 					fileWriter.write(csvs);
