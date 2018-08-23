@@ -11,7 +11,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is CSV Library.
+ * The Original Code is Fast CVS.
  *
  * The Initial Developer of the Original Code is
  * Marco Antonio Villalobos, Jr. (mvillalobos@kineteque.com).
