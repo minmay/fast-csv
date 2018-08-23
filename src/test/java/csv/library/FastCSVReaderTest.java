@@ -46,7 +46,7 @@ public class FastCSVReaderTest {
     public void testSimpleFile() throws IOException {
 
         List<CSVLine> lines = FastCSVReader.newBuilder()
-                .setResource(DelimitTest.class, "/simple.csv")
+                .setResource(FastCSVReaderTest.class, "/simple.csv")
                 .build()
                 .stream().
                         collect(Collectors.toList());
@@ -111,7 +111,7 @@ public class FastCSVReaderTest {
 
         final Object[] expected = {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
         final Class[] types = {boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class};
-        final String line = CSV.delimit(',', expected);
+        final String line = FastCSVWriter.delimit(',', expected);
         final TypeParser parser = new TypeParser();
 
         Optional<Object[]> actual = FastCSVReader.newBuilder().setText(line).build().stream().findFirst().map(CSVLine::getCsvs).map(csv -> {
@@ -144,7 +144,7 @@ public class FastCSVReaderTest {
     public void testBadCsv() throws IOException {
 
         List<CSVLine> bad = FastCSVReader.newBuilder()
-                .setResource(DelimitTest.class, "/bad.csv")
+                .setResource(FastCSVReaderTest.class, "/bad.csv")
                 .setQuotedLengthLimit(3)
                 .build()
                 .stream().collect(Collectors.toList());
@@ -159,7 +159,7 @@ public class FastCSVReaderTest {
         assertArrayEquals(new String[] {""}, bad.get(3).getCsvs());
 
         List<CSVLine> good = FastCSVReader.newBuilder()
-                .setResource(DelimitTest.class, "/bad.csv")
+                .setResource(FastCSVReaderTest.class, "/bad.csv")
                 .build()
                 .stream().collect(Collectors.toList());
 
@@ -243,7 +243,7 @@ public class FastCSVReaderTest {
     @Test
     public void testEmptyFile() throws IOException {
         CSVLine[] lines = FastCSVReader.newBuilder()
-                .setResource(DelimitTest.class, "/empty.csv")
+                .setResource(FastCSVReaderTest.class, "/empty.csv")
                 .build()
                 .stream()
                 .collect(Collectors.toList()).toArray(new CSVLine[]{});
@@ -255,7 +255,7 @@ public class FastCSVReaderTest {
     public void testOneFile() throws IOException {
 
         CSVLine[] lines = FastCSVReader.newBuilder()
-                .setResource(DelimitTest.class, "/one.csv")
+                .setResource(FastCSVReaderTest.class, "/one.csv")
                 .build()
                 .stream()
                 .collect(Collectors.toList()).toArray(new CSVLine[]{});
@@ -265,11 +265,7 @@ public class FastCSVReaderTest {
     }
 
     public void simpleExample() throws IOException {
-        CSVLine[] lines = CSV.newBuilder().setFile("data.csv").setQuotedLengthLimit(3).build().parseToArray();
-    }
-
-    public void streamingExample() throws ExecutionException, FileNotFoundException {
-        BlockingQueue<CSVLine> queue = CSV.newBuilder().setResource(CSV.class, "/data.csv").build().parseToQueue();
+        CSVLine[] lines = FastCSVReader.newBuilder().setFile("data.csv").setQuotedLengthLimit(3).build().stream().collect(Collectors.toList()).toArray(new CSVLine[]{});
     }
 
     @Test
