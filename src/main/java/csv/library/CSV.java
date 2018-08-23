@@ -76,7 +76,7 @@ public class CSV {
 	private final BlockingQueue<CSVLine> queue;
 
 	/** The callback to call when a CSV line is parsed. */
-	private final PushLineCallback callback;
+	private final Consumer<CSVLine> callback;
 
 	/** The type parser to use when a CSV line is parsed and converted into an object. */
 	private final TypeParser typeParser;
@@ -90,7 +90,7 @@ public class CSV {
 	private CSV(
 			String line, ReadableByteChannel channel, CharsetDecoder decoder,
 			Integer bufferSize, Character delimiter, Integer quotedLengthLimit,
-			ExecutorService executorService, BlockingQueue<CSVLine> queue, PushLineCallback callback, TypeParser typeParser,
+			ExecutorService executorService, BlockingQueue<CSVLine> queue, Consumer<CSVLine> callback, TypeParser typeParser,
 			String[] types, boolean relaxed
 	) {
 		this.line = line;
@@ -143,7 +143,7 @@ public class CSV {
 		private BlockingQueue<CSVLine> queue;
 
 		/** The callback to call when a CSV line is parsed. */
-		private PushLineCallback callback;
+		private Consumer<CSVLine> callback;
 
 		/** The type parser to use when a CSV line is parsed and converted into an object. */
 		private TypeParser typeParser;
@@ -362,7 +362,7 @@ public class CSV {
 		 * @return This Builder object.
 		 * @see #parseToCallback()
 		 */
-		public Builder setCallback(PushLineCallback callback) {
+		public Builder setCallback(Consumer<CSVLine> callback) {
 			this.callback = callback;
 			return this;
 		}
@@ -531,6 +531,7 @@ public class CSV {
 	 * @return A blocking queue of CSV lines.
 	 * @throws ExecutionException When there is an error parsing the text.
 	 */
+	@Deprecated
 	public static BlockingQueue<CSVLine> parseToQueue(String text) throws ExecutionException {
 		return newBuilder().setText(text).build().parseToQueue();
 	}
@@ -557,6 +558,7 @@ public class CSV {
 	 * @return An array of CSV lines.
 	 * @throws ExecutionException When there is an error parsing the input stream.
 	 */
+	@Deprecated
 	public static BlockingQueue<CSVLine> parseToQueue(InputStream is) throws ExecutionException {
 		return newBuilder().setInputStream(is).build().parseToQueue();
 	}
@@ -586,6 +588,7 @@ public class CSV {
 	 * @return The blocking queue of CSV lines.
 	 * @throws ExecutionException When there is an error parsing the CVS lines.
 	 */
+	@Deprecated
 	public BlockingQueue<CSVLine> parseToQueue() throws ExecutionException {
 		boolean executorServiceNotAssigned = executorService == null;
 		ExecutorService es = executorServiceNotAssigned ? Executors.newSingleThreadExecutor() : executorService;
@@ -611,10 +614,6 @@ public class CSV {
 	public void parseToCallback() throws IOException {
 		validateArguments();
 		parse(channel, decoder, bufferSize, delimiter, types, typeParser, callback, quotedLengthLimit, relaxed);
-	}
-
-	public void parseToConsumer(Consumer<CSVLine> line) throws IOException {
-
 	}
 
 	/**
@@ -705,18 +704,19 @@ public class CSV {
 		cb.append(line);
 		cb.flip();
 
-		ParseStateValues psv = new ParseStateValues(delimiter, null, null, new SingleLinePush(), quote_length_limit, is_relaxed);
+        SingleLinePush singleLinePush = new SingleLinePush();
+        ParseStateValues psv = new ParseStateValues(delimiter, null, null, quote_length_limit, is_relaxed);
 		psv.current = current;
 		psv.in = cb;
-		psv.current = CSV.parse(psv);
+		psv.current = CSV.parse(psv, singleLinePush);
 
 		if (psv.current != State.START) {
-			pushLine(psv, State.ERROR == psv.current);
+			pushLine(psv, singleLinePush, State.ERROR == psv.current);
 		}
 		psv.isEOF = true;
 		psv.current = psv.current.transition(psv, -1);
 
-		r = ((SingleLinePush)psv.callback).getInfo();
+		r = ((SingleLinePush)singleLinePush).getInfo();
 		return r == null ? new String[]{} : r.getCsvs();
 	}
 
@@ -735,8 +735,8 @@ public class CSV {
 	 */
 	private static CSVLine[] parseToArray(final ReadableByteChannel channel, CharsetDecoder decoder, int bufferSize, final char delimiter, String types[], TypeParser typeParsers, final Integer quote_length_limit, boolean relaxed) throws IOException {
 		final List<CSVLine> list = new ArrayList<CSVLine>();
-		parse(channel, decoder, bufferSize, delimiter, types, typeParsers, new PushLineCallback() {
-			public void pushLine(CSVLine info) {
+		parse(channel, decoder, bufferSize, delimiter, types, typeParsers, new Consumer<CSVLine>() {
+			public void accept(CSVLine info) {
 				list.add(info);
 			}
 		}, quote_length_limit, relaxed);
@@ -759,6 +759,7 @@ public class CSV {
 	 * @return A blocking queue with CSV lines.
 	 * @throws ExecutionException When there in the the parsing thread.
 	 */
+	@Deprecated
 	private static BlockingQueue<CSVLine> parseToQueue(ExecutorService executor, BlockingQueue<CSVLine> queue, final ReadableByteChannel channel, final CharsetDecoder decoder, final int bufferSize, final char delimiter, final String types[], final TypeParser typeParsers, final Integer quote_length_limit, final boolean relaxed) throws ExecutionException {
 
 		final BlockingQueue<CSVLine> q = queue == null ? new LinkedBlockingQueue<CSVLine>() : queue;
@@ -772,8 +773,8 @@ public class CSV {
 			 * @throws Exception if unable to compute a result
 			 */
 			public Boolean call() throws Exception {
-				parse(channel, decoder, bufferSize, delimiter, types, typeParsers, new PushLineCallback() {
-					public void pushLine(CSVLine info) {
+				parse(channel, decoder, bufferSize, delimiter, types, typeParsers, new Consumer<CSVLine>() {
+					public void accept(CSVLine info) {
 						q.offer(info);
 					}
 				}, quote_length_limit, relaxed);
@@ -801,12 +802,12 @@ public class CSV {
 	 * @param quote_length_limit This parameter is optional.  If not null, then a quoted string will be limited to this value.  Any lines that exceed a the limit are flagged as errors.
 	 * @throws IOException When there is an io error.
 	 */
-	private static void parse(ReadableByteChannel channel, CharsetDecoder decoder, int bufferSize, char delimiter, String types[], TypeParser typeParsers, PushLineCallback callback, Integer quote_length_limit, boolean relaxed) throws IOException {
+	private static void parse(ReadableByteChannel channel, CharsetDecoder decoder, int bufferSize, char delimiter, String types[], TypeParser typeParsers, Consumer<CSVLine> callback, Integer quote_length_limit, boolean relaxed) throws IOException {
 
 		ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
 		CharBuffer charBuffer = CharBuffer.allocate(bufferSize);
 
-		ParseStateValues psv = new ParseStateValues(delimiter, types, typeParsers, callback, quote_length_limit, relaxed);
+		ParseStateValues psv = new ParseStateValues(delimiter, types, typeParsers, quote_length_limit, relaxed);
 
 		while ((channel.read(buffer)) != -1 ) {
 			buffer.flip();
@@ -814,25 +815,14 @@ public class CSV {
 			charBuffer.flip();
 
 			psv.in = charBuffer.asReadOnlyBuffer();
-			psv.current = CSV.parse(psv);
+			psv.current = CSV.parse(psv, callback);
 
 			buffer.clear();
 			charBuffer.clear();
 		}
 
-//		while (buffer.hasRemaining()) {
-//			buffer.flip();
-//			decoder.decode(buffer, charBuffer, false);
-//			charBuffer.flip();
-//
-//			CharBuffer readOnlyCopy = charBuffer.asReadOnlyBuffer();
-//			psv.in = readOnlyCopy;
-//			psv.current = CSV.parse(psv);
-//		}
-
-
 		if (psv.current != State.START) {
-			pushLine(psv, State.ERROR == psv.current);
+            pushLine(psv, callback, State.ERROR == psv.current);
 		}
 		psv.isEOF = true;
 		psv.current = psv.current.transition(psv, -1);
@@ -848,7 +838,7 @@ public class CSV {
 	 * @param psv A data-structure for keeping track of parse state.
 	 * @return The next transition state.
 	 */
-	private static State parse(final ParseStateValues psv) {
+	private static State parse(final ParseStateValues psv, Consumer<? super CSVLine> callback) {
 
 		boolean isError = false;
 		char c;
@@ -871,7 +861,7 @@ public class CSV {
 
 			switch(psv.current) {
 				case START:
-					pushLine(psv, isError);
+                    pushLine(psv, callback, isError);
 					isError = false;
 					break;
 				case CR:
@@ -892,7 +882,7 @@ public class CSV {
 					psv.resetCsv();																					//clears the current string
 					break;
 				case FINAL:
-					pushLine(psv, isError);
+                    pushLine(psv, callback, isError);
 					break loop;
 				case ERROR:
 					if (!psv.isEOF) {
@@ -911,7 +901,7 @@ public class CSV {
 	 *
 	 * @param error A flag indicating that error has been found in the current csv line.
 	 */
-	private static void pushLine(ParseStateValues psv, boolean error) {
+	private static void pushLine(ParseStateValues psv, Consumer<? super CSVLine> callback, boolean error) {
 
 //		if (psv.getCsv() != null) {
 			psv.addToCsvs(psv.getCsv());
@@ -921,7 +911,7 @@ public class CSV {
 		String[] csvs_a = psv.getCsvs();
 
 		if (csvs_a != null) {
-			Object[] values =  null;                                                                                        //converts the strings into objects [type parsing]
+			Object[] values =  null;                                                                                    //converts the strings into objects [type parsing]
 			try {
 				values = parse(psv.types, psv.typeParsers, csvs_a);
 			} catch (Exception e) {
@@ -929,48 +919,12 @@ public class CSV {
 			}
 
 			CSVLine csvLine = new CSVLine(psv.delimiter, error, psv.getRaw(), csvs_a, values);
-			if (psv.callback != null) {
-				psv.callback.pushLine(csvLine);                                                                                 //output list of strings
+			if (callback != null) {
+				callback.accept(csvLine);                                                                           //output list of strings
 			}
 		}
 		psv.resetCsvs();
 		psv.resetRaw();
-	}
-
-
-	/**
-	 * This method is called every time it has been determined that a CSV Line is ready to the list of csv lines.  It will
-	 * call the callback that will determine what to do with the line.
-	 *
-	 * @param delimiter The delimiter to use for separating, usually this is a comma.
-	 * @param error A flag indicating that error has been found in the current csv line.
-	 * @param csvs The comma separated values that belong to a line that are being built.
-	 * @param csv The current comma separated that is being built.
-	 * @param raw The raw, un-parsed csv line that is being built.
-	 * @param types The names of the field parsers to use in the type parser for the ith row of the csv line when a field is converted into an object.
-	 * @param typeParsers The type parser to use when a CSV line is parsed and converted into an object.
-	 * @param callback The callback that will handle the business logic to perform when a CSV line is encountered.
-	 */
-	@Deprecated
-	private static void pushLine(char delimiter, boolean error, List<String> csvs, StringBuilder csv, StringBuilder raw, String types[], TypeParser typeParsers, PushLineCallback callback) {
-		csvs.add(csv.toString());
-		csv.delete(0, csv.length());                                                                                    //clears the current string
-
-		String[] csvs_a = csvs.toArray(new String[csvs.size()]);
-
-		Object[] values =  null;                                                                                        //converts the strings into objects [type parsing]
-		try {
-			values = parse(types, typeParsers, csvs_a);
-		} catch (Exception e) {
-			System.err.println("error during parsing of " + raw + ".  " + e);
-		}
-
-		CSVLine csvLine = new CSVLine(delimiter, error, raw.toString(), csvs_a, values);
-		if (callback != null) {
-			callback.pushLine(csvLine);                                                                                 //output list of strings
-		}
-		csvs.clear();                                                                                                   //clear current list
-		raw.delete(0,raw.length());
 	}
 
 	/**
@@ -1042,6 +996,7 @@ public class CSV {
 	 * @return A string containing the contents of the input stream.
 	 * @throws IOException When there is an IO error.
 	 */
+	@Deprecated
 	public static String readInputStreamAsString(InputStream is, CharsetDecoder decoder) throws IOException{
 		StringBuilder builder = new StringBuilder();
 		ReadableByteChannel channel = null;

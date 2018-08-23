@@ -26,10 +26,12 @@
 package csv.library;
 
 
+import java.util.function.Consumer;
+
 /**
  * A line push callback designed for handling a single csv line.
  */
-public class SingleLinePush implements PushLineCallback {
+public class SingleLinePush implements Consumer<CSVLine> {
 
 	/** The single comma separated values data-structure. */
 	private CSVLine info = null;
@@ -39,7 +41,7 @@ public class SingleLinePush implements PushLineCallback {
 	 *
 	 * @param info The comma separated value line.
 	 */
-	public void pushLine(CSVLine info) {
+	public void accept(CSVLine info) {
 		this.info = info;
 	}
 

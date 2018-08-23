@@ -159,4 +159,9 @@ public class CSVLine {
 		result = 31 * result + (raw != null ? raw.hashCode() : 0);
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return raw;
+	}
 }

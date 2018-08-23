@@ -43,9 +43,6 @@ public class ParseStateValues {
 	/** The type parser to use when a CSV line is parsed and converted into an object. */
 	final TypeParser typeParsers;
 
-	/** The callback that will handle the business logic to perform when a CSV line is encountered. */
-	final PushLineCallback callback;
-
 	/** This parameter is optional.  If not null, then a quoted string will be limited to this value.  Any lines that exceed a the limit are flagged as errors. */
 	final Integer quote_length_limit;
 
@@ -80,15 +77,13 @@ public class ParseStateValues {
 	 * @param delimiter The delimiter to use for separating, usually this is a comma.
 	 * @param types The names of the field parsers to use in the type parser for the ith row of the csv line when a field is converted into an object.
 	 * @param typeParsers The type parser to use when a CSV line is parsed and converted into an object.
-	 * @param callback The callback that will handle the business logic to perform when a CSV line is encountered.
 	 * @param quote_length_limit This parameter is optional.  If not null, then a quoted string will be limited to this value.  Any lines that exceed a the limit are flagged as errors.
 	 * @param is_relaxed todo
 	 */
-	public ParseStateValues(char delimiter, String[] types, TypeParser typeParsers, PushLineCallback callback, Integer quote_length_limit, boolean is_relaxed) {
+	public ParseStateValues(char delimiter, String[] types, TypeParser typeParsers, Integer quote_length_limit, boolean is_relaxed) {
 		this.delimiter = delimiter;
 		this.types = types;
 		this.typeParsers = typeParsers;
-		this.callback = callback;
 		this.quote_length_limit = quote_length_limit;
 		this.is_relaxed = is_relaxed;
 	}

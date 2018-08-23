@@ -25,7 +25,7 @@
 
 package csv.library;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,10 +34,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DelimitTest {
 
@@ -162,7 +161,7 @@ public class DelimitTest {
 		String line = CSV.delimit(',', expected);
 		Object[] actual = CSV.newBuilder().setTypes(types).setLine(line).build().parseLineToObjects();
 
-		assertEquals(actual, expected);
+		assertArrayEquals(actual, expected);
 	}
 
 	@Test
@@ -192,62 +191,70 @@ public class DelimitTest {
 		}
 	}
 
-	@Test void testSimple() {
+	@Test
+	public void testSimple() {
 		String[] r = CSV.parseLine("1,2,3");
 		assertNotNull(r);
 		assertEquals(r.length, 3);
-		assertEquals(new String[] {"1", "2", "3"}, r);
+		assertArrayEquals(new String[] {"1", "2", "3"}, r);
 	}
 
-	@Test void testEmptyValues() {
+	@Test
+	public void testEmptyValues() {
 		String[] r = CSV.parseLine(",,");
 		assertNotNull(r);
 		assertEquals(r.length, 3);
-		assertEquals(new String[] {"", "", ""}, r);
+		assertArrayEquals(new String[] {"", "", ""}, r);
 	}
 
-	@Test void testEmpty() {
+	@Test
+	public void testEmpty() {
 		String[] r = CSV.parseLine("");
 		assertNotNull(r);
 		assertEquals(r.length, 0);
-		assertEquals(new String[] {}, r);
+		assertArrayEquals(new String[] {}, r);
 	}
 
-	@Test void testOne() {
+	@Test
+	public void testOne() {
 		String[] r = CSV.parseLine("\"\"");
 		assertNotNull(r);
 		assertEquals(r.length, 1);
-		assertEquals(new String[] {""}, r);
+		assertArrayEquals(new String[] {""}, r);
 	}
 
-	@Test void testEmptyFile() throws IOException {
+	@Test
+	public void testEmptyFile() throws IOException {
 		CSVLine[] lines = CSV.newBuilder().setResource(DelimitTest.class, "/empty.csv").build().parseToArray();
 		assertNotNull(lines);
 		assertEquals(lines.length, 0);
 	}
 
-	@Test void testOneFile() throws IOException {
+	@Test
+	public void testOneFile() throws IOException {
 		CSVLine[] lines = CSV.newBuilder().setResource(DelimitTest.class, "/one.csv").build().parseToArray();
 		assertNotNull(lines);
 		assertEquals(lines.length, 1);
 	}
 
-	@Test void testSimpleFile() throws IOException {
+	@Test
+	public void testSimpleFile() throws IOException {
 		CSVLine[] lines = CSV.newBuilder().setResource(DelimitTest.class, "/simple.csv").build().parseToArray();
 		assertNotNull(lines);
 		assertEquals(lines.length, 3);
-		assertEquals(lines[0].getCsvs(), new String[] {"1", "2", "3"});
-		assertEquals(lines[1].getCsvs(), new String[] {"4", "5", "6"});
-		assertEquals(lines[2].getCsvs(), new String[] {"7", "8", "9"});
+		assertArrayEquals(lines[0].getCsvs(), new String[] {"1", "2", "3"});
+		assertArrayEquals(lines[1].getCsvs(), new String[] {"4", "5", "6"});
+		assertArrayEquals(lines[2].getCsvs(), new String[] {"7", "8", "9"});
 	}
 
-	@Test void testSimpleFileCallback() throws IOException {
+	@Test
+	public void testSimpleFileCallback() throws IOException {
 		CSVLine[] lines = CSV.newBuilder().setResource(DelimitTest.class, "/simple.csv").build().parseToArray();
 		assertNotNull(lines);
 		assertEquals(lines.length, 3);
-		assertEquals(lines[0].getCsvs(), new String[] {"1", "2", "3"});
-		assertEquals(lines[1].getCsvs(), new String[] {"4", "5", "6"});
-		assertEquals(lines[2].getCsvs(), new String[] {"7", "8", "9"});
+		assertArrayEquals(lines[0].getCsvs(), new String[] {"1", "2", "3"});
+		assertArrayEquals(lines[1].getCsvs(), new String[] {"4", "5", "6"});
+		assertArrayEquals(lines[2].getCsvs(), new String[] {"7", "8", "9"});
 	}
 
 	public void simpleExample() throws IOException {
@@ -263,12 +270,10 @@ public class DelimitTest {
 		final AtomicInteger count = new AtomicInteger();
 
 		CSV.newBuilder().setResource(DelimitTest.class, "/2050.csv").setCallback(
-				new PushLineCallback() {
-					public void pushLine(CSVLine info) {
-						assertNotNull(info);
-						assertNotNull(info.getCsvs());
-						assertEquals(info.getCsvs(), new String[] {Integer.toString(count.getAndIncrement()), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"});
-					}
+				info -> {
+					assertNotNull(info);
+					assertNotNull(info.getCsvs());
+					assertEquals(info.getCsvs(), new String[] {Integer.toString(count.getAndIncrement()), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"});
 				}
 		).build().parseToCallback();
 
@@ -282,13 +287,11 @@ public class DelimitTest {
 		final AtomicInteger count = new AtomicInteger();
 
 		CSV.newBuilder().setResource(DelimitTest.class, "/single.csv").setCallback(
-				new PushLineCallback() {
-					public void pushLine(CSVLine info) {
-						count.incrementAndGet();
-						assertNotNull(info);
-						assertNotNull(info.getCsvs());
-						//assertEquals(info.getCsvs(), new String[] {Integer.toString(count.getAndIncrement()), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"});
-					}
+				info -> {
+					count.incrementAndGet();
+					assertNotNull(info);
+					assertNotNull(info.getCsvs());
+					//assertEquals(info.getCsvs(), new String[] {Integer.toString(count.getAndIncrement()), "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"});
 				}
 		).build().parseToCallback();
 
