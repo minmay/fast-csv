@@ -66,6 +66,54 @@ public class TypeParser {
 		typeParserMap.put(short.class.getName(), new ShortParser(true));
 	}
 
+	/**
+	 * Parses the string with the given classes parser.
+	 *
+	 * @param type The class type that will be parsed.
+	 * @param v The value to valueOf.
+	 * @return The class instance value that was parsed.
+	 * @throws NullPointerException When the parser for this type is not supported.
+	 *
+	 */
+	public Object parse(Class type, String v) {
+		return parse(type.getName(), v);
+	}
+
+	/**
+	 * Parses the string with the given classes parser.
+	 *
+	 * @param parserId The class type that will be parsed.
+	 * @param v The value to valueOf.
+	 * @return The class instance value that was parsed.
+	 * @throws NullPointerException When the parser for this type is not supported.
+	 *
+	 */
+	public Object parse(String parserId, String v) {
+		return typeParserMap.get(parserId).valueOf(v);
+	}
+
+	/**
+	 * Adds a parser for the given type.
+	 *
+	 * @param type The type of class that this parser supports.
+	 * @param p the parser implementation.
+	 */
+	public TypeParser add(Class type, FieldParser p) {
+		add(type.getName(), p);
+		return this;
+	}
+
+	/**
+	 * Adds a parser for the given type.
+	 *
+	 * @param parserId The type of class that this parser supports.
+	 * @param p the parser implementation.
+	 */
+	public TypeParser add(String parserId, FieldParser p) {
+		typeParserMap.put(parserId, p);
+		return this;
+	}
+
 	private class BooleanParser extends LangFieldParser<Boolean> {
 		private BooleanParser(boolean primitive) {
 			super(primitive);
@@ -162,51 +210,5 @@ public class TypeParser {
 		public String valueOf(String v) {
 			return v;
 		}
-	}
-
-	/**
-	 * Parses the string with the given classes parser.
-	 *
-	 * @param type The class type that will be parsed.
-	 * @param v The value to valueOf.
-	 * @return The class instance value that was parsed.
-	 * @throws NullPointerException When the parser for this type is not supported.
-	 *
-	 */
-	public Object parse(Class type, String v) {
-		return parse(type.getName(), v);
-	}
-
-	/**
-	 * Parses the string with the given classes parser.
-	 *
-	 * @param parserId The class type that will be parsed.
-	 * @param v The value to valueOf.
-	 * @return The class instance value that was parsed.
-	 * @throws NullPointerException When the parser for this type is not supported.
-	 *
-	 */
-	public Object parse(String parserId, String v) {
-		return typeParserMap.get(parserId).valueOf(v);
-	}
-
-	/**
-	 * Adds a parser for the given type.
-	 *
-	 * @param type The type of class that this parser supports.
-	 * @param p the parser implementation.
-	 */
-	public void add(Class type, FieldParser p) {
-		add(type.getName(), p);
-	}
-
-	/**
-	 * Adds a parser for the given type.
-	 *
-	 * @param parserId The type of class that this parser supports.
-	 * @param p the parser implementation.
-	 */
-	public void add(String parserId, FieldParser p) {
-		typeParserMap.put(parserId, p);
 	}
 }
