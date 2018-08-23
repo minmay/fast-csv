@@ -11,11 +11,11 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Fast CVS.
+ * The Original Code is Fast CSV.
  *
  * The Initial Developer of the Original Code is
  * Marco Antonio Villalobos, Jr. (mvillalobos@kineteque.com).
- * Portions created by the Initial Developer are Copyright (C) 2010
+ * Portions created by the Initial Developer are Copyright (C) 2018
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
