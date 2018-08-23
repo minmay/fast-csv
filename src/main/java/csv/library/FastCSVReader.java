@@ -38,7 +38,20 @@ public class FastCSVReader {
     }
 
     public Stream<CSVLine> stream() {
+        validateArguments();
         return StreamSupport.stream(new CSVLineSpliterator(channel, decoder, bufferSize, delimiter, quotedLengthLimit, relaxed), false);
+    }
+
+    /**
+     * Validates the channel and buffer size.
+     */
+    private void validateArguments() {
+        if (channel==null) {
+            throw new NullPointerException("A channel is required for parsing.");
+        }
+        if (bufferSize <= 0) {
+            throw new IllegalArgumentException("The buffer size must be a positive integer.");
+        }
     }
 
     public static Builder newBuilder() {
