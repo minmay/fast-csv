@@ -211,7 +211,7 @@ public class CSVLineSpliterator implements Spliterator<CSVLine> {
         final String[] csvs_a = psv.getCsvs();
 
         if (csvs_a != null) {
-            final CSVLine csvLine = new CSVLine(psv.delimiter, error, psv.getRaw(), csvs_a, null);
+            final CSVLine csvLine = new CSVLine(psv.delimiter, error, psv.getRaw(), csvs_a);
             if (action != null) {
                 action.accept(csvLine);                                                                           //output list of strings
             }

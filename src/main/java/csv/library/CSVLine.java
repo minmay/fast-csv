@@ -43,9 +43,6 @@ public class CSVLine {
 	/** An array of the csv values. */
 	private final String[] csvs;
 
-	/** The values that were converted by the type parser. */
-	private final Object[] values;
-
 	/**
 	 * Creates an instance of this CSV information.
 	 *
@@ -59,26 +56,8 @@ public class CSVLine {
 		isError = error;
 		this.raw = raw;
 		this.csvs = csvs;
-		this.values = csvs;
 	}
-
-	/**
-	 * Creates an instance of this CSV information.
-	 *
-	 * @param delimiter The delimiter.
-	 * @param error The error flag to mark this as an error.
-	 * @param raw The raw csv line.
-	 * @param csvs The separated values.
-	 * @param values The values that were converted by the type parser.
-	 */
-	public CSVLine(char delimiter, boolean error, String raw, String[] csvs, Object[] values) {
-		this.delimiter = delimiter;
-		isError = error;
-		this.raw = raw;
-		this.csvs = csvs;
-		this.values = values;
-	}
-
+	
 	/**
 	 * Retrieves the delimiter.
 	 *
@@ -113,15 +92,6 @@ public class CSVLine {
 	 */
 	public String[] getCsvs() {
 		return csvs;
-	}
-
-	/**
-	 * Retrieve the values that were converted by the type parser.
-	 *
-	 * @return The values that were converted by the type parser.
-	 */
-	public Object[] getValues() {
-		return values;
 	}
 
 	/**
