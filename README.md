@@ -49,7 +49,7 @@ setQuotedLengthLimit(int) // if there is an error closing a quote, this will pre
 ### Collect into Array
 This example parses a file, puts all of the contents in memory within an array of CSV lines. 
 ```java
-CSVLine[] lines = CSV().newBuilder()
+CSVLine[] lines = FastCSVReader().newBuilder()
     .setFile("data.csv")
     .build()
     .stream()
