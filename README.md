@@ -1,6 +1,6 @@
 # fast-csv
 Fluent comma separated value (csv) parser with streaming support. 
-I hosted this project on Google Code in 2010. I moved it to github in August 2019. 
+I hosted this project on Google Code in 2010. I moved it to github in August 2018. 
 I refactored the original API use JDK 1.8 functional Java API with streaming support.
 The original project is at https://code.google.com/archive/p/csv-library/.
 
