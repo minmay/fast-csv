@@ -79,10 +79,16 @@ public class FastCSVReader {
         }
     }
 
+    /**
+     * Creates a new instance of the fluent builder.
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
 
+    /**
+     * A fluent builder for the FastCSVReader.
+     */
     public static class Builder {
 
         /** The channel that contains all of the lines of CSV. */
@@ -97,10 +103,10 @@ public class FastCSVReader {
         /** The delimiter to use for separating, usually this is a comma.  The default is a comma. */
         private char delimiter = ',';
 
-        /** This parameter is optional.  If not null, then a quoted string will be limited to this value.  Any lines that exceed a the limit are flagged as errors. */
+        /** This parameter is optional. If not null, then a quoted string will be limited to this value. Any lines that exceed a the limit are flagged as errors. */
         private Integer quotedLengthLimit;
 
-        /** Configures the parser to be relaxed.  Relaxed mode allows a value to start with a tab or space. */
+        /** Configures the parser to be relaxed. Relaxed mode allows a value to start with a tab or space. */
         private boolean relaxed = false;
 
         /**
