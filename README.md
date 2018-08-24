@@ -47,25 +47,26 @@ setQuotedLengthLimit(int) // if there is an error closing a quote, this will pre
 ```
 ## Examples
 ### Iterate over each element
-This example parses a file, puts all of the contents in memory within an array of CSV lines. 
+Streams over the CSV file without completely loading into memory. 
 ```java
 FastCSVReader.newBuilder()
     .setFile("data.csv")
     .build()
     .stream()
-    .map(CSVLine::getCsvs)
+    .map(CSVLine::getCsvs)              // map into a String array
     .forEach(line -> {
-        System.out.println(line[0]);
+        System.out.println(line[0]);    // print the first column
     });
 ```
-### Collect into CSVLine Array 
+### Collect into CSVLine Array
+Load the complete CSV into a List then convert it into an array. 
 ```java
 CSVLine[] lines = FastCSVReader.newBuilder()
     .setFile("data.csv")
     .build()
     .stream()
-    .collect(Collectors.toList())
-    .toArray(new CSVLine[]{});
+    .collect(Collectors.toList())       // collect into memory as a List
+    .toArray(new CSVLine[]{});          // convert into an array
 ```
 ### Collect into multi-dimensional String array. 
 ```java
@@ -73,19 +74,19 @@ String[][] lines = FastCSVReader.newBuilder()
     .setFile("data.csv")
     .build()
     .stream()
-    .map(CSVLine::getCsvs)
-    .collect(Collectors.toList())
-    .toArray(new String[][]{});
+    .map(CSVLine::getCsvs)              // map into a String array
+    .collect(Collectors.toList())       // collect arrays into a List
+    .toArray(new String[][]{});         // convert the List of of arrays into a String two-dimensional array
 ```
 ### Collect into multi-dimensional Object array.
 ```java
 Object[][] lines = FastCSVReader.newBuilder()
     .setFile("data.csv")
     .build()
-    .stream()
+    .stream()                           // line below declares the type of each field, and then maps into an Object array.
     .map(TypeParser.newInstance().add(boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class))
-    .collect(Collectors.toList())
-    .toArray(new Object[][]{});
+    .collect(Collectors.toList())       // collect the arrays into a List
+    .toArray(new Object[][]{});         // convert the List of of arrays into a Object two-dimensional array
 ```
 ### First as an object array.
 ```java 
@@ -93,10 +94,10 @@ Object[] parsed = FastCSVReader
     .newBuilder()
     .setText("true,1,123,123.456,123.456,123,a,Hey man!!!")
     .build()
-    .stream()
+    .stream()                           // line below declares the type of each field, and then maps into an Object array.
     .map(TypeParser.newInstance().add(boolean.class, byte.class, int.class, float.class, double.class, long.class, char.class, String.class))
-    .findFirst()
-    .orElse(null); //returns new Object[] {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
+    .findFirst()                        // finds the first row
+    .orElse(null);                      // returns new Object[] {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
        
 ```
 
