@@ -46,8 +46,7 @@ setDelimiter(char)
 setQuotedLengthLimit(int) // if there is an error closing a quote, this will prevent the parser from reading to the end of file.
 ```
 ## Examples
-### Iterate over each element
-Streams over the CSV file without completely loading into memory. 
+### Iterate over each element 
 ```java
 FastCSVReader.newBuilder()
     .setFile("data.csv")
@@ -58,8 +57,7 @@ FastCSVReader.newBuilder()
         System.out.println(line[0]);    // print the first column
     });
 ```
-### Collect into CSVLine Array
-Load the complete CSV into a List then convert it into an array. 
+### Collect into CSVLine Array 
 ```java
 CSVLine[] lines = FastCSVReader.newBuilder()
     .setFile("data.csv")
