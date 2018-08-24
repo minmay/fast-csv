@@ -1,11 +1,11 @@
 # fast-csv
 Comma separated value (CSV) parser with streaming support. 
-I originally wrote this project code.google.com in 2010. 
+I originally hosted this project on Google Code in 2010. 
 I ported it to use JDK 1.8 functional Java API with streaming support.
 The original project is at https://code.google.com/archive/p/csv-library/.
 
 ## Description
-A library for parsing and writing comma separated values (CSV) with a JDK 8 functional Java API.
+A library for parsing and writing comma separated values (CSV) that uses the JDK 8 functional Java API.
 
 This will parse or write CSV as specified on http://en.wikipedia.org/wiki/Comma-separated_values and allow for use of any delimiter.
 
