@@ -98,5 +98,3 @@ Object[] parsed = FastCSVReader
     .orElse(null);                      // returns new Object[] {true, (byte) 1, 123, 123.456f, 123.456d, 123L, 'a', "Hey man!!!"};
        
 ```
-
-The Fast CSV library uses the builder design pattern to configure what and how you want to parse.
