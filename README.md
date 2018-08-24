@@ -99,4 +99,4 @@ Object[] parsed = FastCSVReader
        
 ```
 
-The FAST CSV library uses the builder design pattern to configure what and how you want to parse.
+The Fast CSV library uses the builder design pattern to configure what and how you want to parse.
